@@ -1,10 +1,16 @@
 # Architecture Overview
 
+<!-- GENERATION GUIDANCE: Fill this template with ALL relevant details extracted
+from existing project documentation and source code. This file should be
+self-contained. Add a "Related Resources" section at the bottom if content was
+drawn from existing files. -->
+
 _Last updated: [YYYY-MM-DD]_
 
 ## System Overview
 
-[High-level description of what this system does — 2-3 sentences]
+[Full description of what this system does — its purpose, users, key capabilities,
+and the problems it solves. Be thorough, not brief.]
 
 ## Tech Stack
 
@@ -29,3 +35,7 @@ _Last updated: [YYYY-MM-DD]_
 ## Key Design Decisions
 
 See `docs/decisions/` for Architecture Decision Records.
+
+## Related Resources
+
+<!-- List any existing documentation files that provided source material -->

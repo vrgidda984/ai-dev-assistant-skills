@@ -1,5 +1,8 @@
 # Data Model
 
+<!-- GENERATION GUIDANCE: Parse ALL entities from schema files and existing docs.
+List every column, relationship, and migration workflow. Be comprehensive. -->
+
 _Last updated: [YYYY-MM-DD]_
 
 ## Database
@@ -25,3 +28,7 @@ _Last updated: [YYYY-MM-DD]_
 ## Migrations
 
 [How to run migrations in development and production]
+
+## Related Resources
+
+<!-- List any existing documentation files that provided source material -->

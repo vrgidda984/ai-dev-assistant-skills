@@ -1,5 +1,8 @@
 # Infrastructure
 
+<!-- GENERATION GUIDANCE: Extract full infrastructure details from docker-compose,
+Dockerfiles, IaC files, and existing docs. Be comprehensive. -->
+
 _Last updated: [YYYY-MM-DD]_
 
 ## Overview
@@ -28,3 +31,7 @@ docker-compose up
 ## Infrastructure as Code
 
 [Location and how to apply changes — e.g., Terraform, CDK, Pulumi]
+
+## Related Resources
+
+<!-- List any existing documentation files that provided source material -->

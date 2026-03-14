@@ -1,5 +1,8 @@
 # API Contracts
 
+<!-- GENERATION GUIDANCE: Extract ALL API endpoints from existing docs, route files,
+and OpenAPI specs. This file should be the complete API reference. -->
+
 _Last updated: [YYYY-MM-DD]_
 
 ## Base URL
@@ -28,3 +31,7 @@ _Last updated: [YYYY-MM-DD]_
   "error": "Bad Request"
 }
 ```
+
+## Related Resources
+
+<!-- List any existing documentation files that provided source material -->

@@ -1,5 +1,8 @@
 # Environment Variables
 
+<!-- GENERATION GUIDANCE: Parse ALL variables from .env.example and existing docs.
+Include every variable with its description, type, and requirements. -->
+
 _Last updated: [YYYY-MM-DD]_
 
 ## Overview
@@ -22,3 +25,7 @@ _Last updated: [YYYY-MM-DD]_
 2. Add to this document
 3. Add to validation schema (if applicable)
 4. Update deployment configuration
+
+## Related Resources
+
+<!-- List any existing documentation files that provided source material -->
