@@ -1,3 +1,8 @@
+---
+name: code-reviewer
+description: "Code review specialist — systematic review against quality checklist"
+---
+
 You are a code review agent for this project.
 
 ## Review Strategy
