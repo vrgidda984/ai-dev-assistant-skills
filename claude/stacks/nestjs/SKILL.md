@@ -155,12 +155,173 @@ describe('UsersService', () => {           // class under test
 
 Unit tests co-locate with source (`*.spec.ts`). E2E tests go in `test/` (`*.e2e-spec.ts`).
 
+## Request Pipeline
+
+Understanding the NestJS execution order is critical for debugging and placing logic correctly:
+
+```
+Request → Middleware → Guards → Interceptors (pre) → Pipes → Route Handler → Interceptors (post) → Exception Filters → Response
+```
+
+| Layer | Purpose | Example |
+|-------|---------|---------|
+| Middleware | Authentication, logging, body parsing | Token extraction, request ID |
+| Guards | Authorization decisions | Role checks, permission validation |
+| Interceptors (pre) | Transform request, start timers | Logging entry, cache check |
+| Pipes | Validate and transform input | DTO validation, ParseIntPipe |
+| Route Handler | Business logic delegation | Controller method |
+| Interceptors (post) | Transform response | Response mapping, logging exit |
+| Exception Filters | Handle errors | Format error responses |
+
+**Key rule**: Use middleware for authentication (token validation). Use guards for authorization (does this user have permission?). Don't mix these.
+
+## Provider Scopes
+
+Providers default to singleton scope. Only change when necessary:
+
+| Scope | Lifecycle | Use when |
+|-------|-----------|----------|
+| `DEFAULT` (Singleton) | One instance shared app-wide | Most services — safe in Node.js single-threaded model |
+| `REQUEST` | New instance per request | Per-request state (multi-tenancy, request context) |
+| `TRANSIENT` | New instance per injection | Stateful helpers that shouldn't share state |
+
+**Warnings:**
+- `REQUEST` scope bubbles up the dependency chain — if a singleton depends on a request-scoped provider, the singleton becomes request-scoped too
+- `REQUEST` scope adds ~5% latency overhead per request
+- Never use request-scoped providers with WebSocket Gateways, Passport strategies, or Cron controllers
+- For multi-tenancy, prefer durable providers with `ContextIdStrategy` over request scope
+
+## Global Registration
+
+Always prefer module-based registration over `app.useGlobal*()` for dependency injection support:
+
+```typescript
+// ✅ GOOD — DI works, testable, overridable
+@Module({
+  providers: [
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_FILTER, useClass: HttpExceptionFilter },
+    { provide: APP_PIPE, useClass: ValidationPipe },
+    { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
+  ],
+})
+export class AppModule {}
+
+// ❌ AVOID — no DI, harder to test and override
+app.useGlobalGuards(new JwtAuthGuard());
+```
+
+## Configuration
+
+### ConfigModule Setup
+
+```typescript
+// app.module.ts
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      cache: true,
+      expandVariables: true,
+      validationSchema: Joi.object({
+        NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
+        PORT: Joi.number().default(3000),
+        DATABASE_URL: Joi.string().required(),
+        JWT_SECRET: Joi.string().required(),
+      }),
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+**Key rules:**
+- Set `isGlobal: true` to avoid importing ConfigModule in every feature module
+- Always validate env vars at startup — fail fast on missing/invalid config
+- Use `cache: true` for performance
+- Use typed ConfigService: `this.configService.get<string>('DATABASE_URL', { infer: true })`
+- Runtime environment variables take precedence over `.env` values
+
+### Namespaced Configuration
+
+```typescript
+// config/database.config.ts
+export default registerAs('database', () => ({
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT, 10) || 5432,
+}));
+
+// Usage
+const dbHost = this.configService.get<string>('database.host');
+```
+
+## Dynamic Modules
+
+Use `forRoot()` / `forFeature()` pattern for configurable modules:
+
+```typescript
+// forRoot() — configure once in AppModule (connection, global config)
+@Module({})
+export class DatabaseModule {
+  static forRoot(options: DatabaseOptions): DynamicModule {
+    return {
+      module: DatabaseModule,
+      global: true,
+      providers: [
+        { provide: 'DATABASE_OPTIONS', useValue: options },
+        DatabaseService,
+      ],
+      exports: [DatabaseService],
+    };
+  }
+
+  // forFeature() — register entities/repos per feature module
+  static forFeature(entities: Type[]): DynamicModule {
+    const providers = entities.map(entity => ({
+      provide: getRepositoryToken(entity),
+      useFactory: (ds: DataSource) => ds.getRepository(entity),
+      inject: [DataSource],
+    }));
+    return { module: DatabaseModule, providers, exports: providers };
+  }
+}
+```
+
+## Custom Decorators
+
+Use `Reflector.createDecorator()` for type-safe metadata:
+
+```typescript
+// decorators/roles.decorator.ts
+export const Roles = Reflector.createDecorator<string[]>();
+
+// Usage on handler
+@Roles(['admin', 'moderator'])
+@Get('admin')
+getAdminData() {}
+
+// Reading in guard
+@Injectable()
+export class RolesGuard implements CanActivate {
+  constructor(private reflector: Reflector) {}
+  canActivate(context: ExecutionContext): boolean {
+    const roles = this.reflector.get(Roles, context.getHandler());
+    if (!roles) return true;
+    const request = context.switchToHttp().getRequest();
+    return roles.includes(request.user.role);
+  }
+}
+```
+
 ## Code Standards
 
 ### Controllers
 - @ApiTags, @ApiOperation, @ApiResponse decorators
 - Validation pipes on all inputs
 - Thin controllers — delegate to services
+- Declare parameterized routes AFTER static routes to prevent interception
+- Use parameter decorators (`@Param()`, `@Body()`, `@Query()`) — avoid raw `@Req()`
+- Never use `@Res()` directly — it disables interceptors, serialization, and exception filters. If unavoidable, use `@Res({ passthrough: true })`
 
 ### Services
 - Logger: `private readonly logger = new Logger(ServiceName.name)`
@@ -169,7 +330,8 @@ Unit tests co-locate with source (`*.spec.ts`). E2E tests go in `test/` (`*.e2e-
 - Follow structured logging standards (see Logging section below)
 
 ### DTOs
-- class-validator on all fields
+- Use **classes**, not interfaces — classes survive TypeScript compilation and enable runtime validation with class-validator
+- class-validator decorators on all fields
 - @Transform for sanitization
 - PartialType/OmitType for updates
 - @Expose() in response DTOs
@@ -179,11 +341,35 @@ Unit tests co-locate with source (`*.spec.ts`). E2E tests go in `test/` (`*.e2e-
 - @Index on query columns
 - Soft deletes with @DeleteDateColumn
 
+### Modules
+- Group related controllers, services, and providers into feature modules
+- Use `exports` array as the module's public API — only exported providers are accessible to importers
+- Use `@Global()` sparingly — register only in root/core module; prefer explicit imports
+- Never register the same provider in multiple modules (creates separate instances, wastes memory, risks state inconsistency)
+
+### Guards
+- Implement `CanActivate` interface
+- Use for authorization — not authentication (use middleware for that)
+- Throw `UnauthorizedException` or `ForbiddenException` with specific messages, don't just return `false`
+- Register global guards via `APP_GUARD` token in module
+
+### Pipes
+- Use built-in pipes first: `ValidationPipe`, `ParseIntPipe`, `ParseUUIDPipe`, `ParseBoolPipe`, `ParseArrayPipe`, `DefaultValuePipe`
+- Chain `DefaultValuePipe` before `Parse*` pipes for optional parameters
+- Register global `ValidationPipe` via `APP_PIPE` token with `whitelist: true` and `transform: true`
+
+### Exception Handling
+- Use built-in NestJS exceptions: `BadRequestException`, `UnauthorizedException`, `NotFoundException`, `ForbiddenException`, `ConflictException`, `InternalServerErrorException`
+- Custom exceptions must extend `HttpException`
+- Use `cause` parameter for error chaining: `throw new NotFoundException('User not found', { cause: originalError })`
+- Prefer class references over instances in `@UseFilters()` for memory efficiency
+
 ### Middleware
 - Use Express middleware adapters via `@nestjs/platform-express`
 - Apply middleware in modules or globally in main.ts
 - Type middleware properly: `(req: Request, res: Response, next: NextFunction) => void`
-- Common use cases: logging, request tracking, body parsing
+- Common use cases: authentication (token validation), logging, request tracking, body parsing
+- Do NOT use middleware for authorization — use guards instead (middleware lacks route context)
 
 ### Database (Prisma ORM)
 - **Schema**: Define in `prisma/schema.prisma`
@@ -193,6 +379,7 @@ Unit tests co-locate with source (`*.spec.ts`). E2E tests go in `test/` (`*.e2e-
 - **Relations**: Define relations in schema, use `include` for eager loading
 - **Migrations**: Run `prisma migrate dev` for development, `prisma migrate deploy` for production
 - **Type Safety**: Prisma generates TypeScript types automatically
+- **NEVER** use `synchronize: true` in production — risk of data loss
 
 ### Logging
 

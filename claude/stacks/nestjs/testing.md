@@ -337,6 +337,48 @@ describe('LoggingMiddleware', () => {
 });
 ```
 
+## Testing Guards, Interceptors, Pipes, and Filters
+
+Use `overrideGuard()`, `overrideInterceptor()`, `overridePipe()`, `overrideFilter()` for test replacements:
+
+```typescript
+const module = await Test.createTestingModule({
+  imports: [AppModule],
+})
+  .overrideGuard(JwtAuthGuard).useValue({ canActivate: () => true })
+  .overrideInterceptor(LoggingInterceptor).useValue({ intercept: (_, next) => next.handle() })
+  .compile();
+```
+
+For globally registered enhancers (via `APP_*` tokens), use `useExisting` in the provider to make them overridable:
+
+```typescript
+// In module — makes the guard overridable in tests
+{ provide: APP_GUARD, useExisting: JwtAuthGuard }
+
+// In test
+.overrideProvider(JwtAuthGuard).useValue({ canActivate: () => true })
+```
+
+## Auto-Mocking with useMocker
+
+For services with many dependencies, use `.useMocker()` to auto-create mocks:
+
+```typescript
+const module = await Test.createTestingModule({
+  providers: [UserService],
+})
+  .useMocker((token) => {
+    if (token === PrismaService) {
+      return { user: { findUnique: jest.fn(), create: jest.fn() } };
+    }
+    if (typeof token === 'function') {
+      return createMock(token); // using @golevelup/ts-jest or similar
+    }
+  })
+  .compile();
+```
+
 ## Best Practices
 
 1. **Isolation**: Each test should be independent
@@ -349,3 +391,5 @@ describe('LoggingMiddleware', () => {
 8. **Realistic Data**: Use realistic test data, avoid magic numbers
 9. **Performance**: Keep unit tests fast (<100ms each)
 10. **Transactions**: Wrap test database operations in transactions when possible
+11. **Always call `.compile()`** before retrieving instances with `module.get()`
+12. **Use `resolve()` not `get()`** for request-scoped or transient providers
