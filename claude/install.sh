@@ -70,7 +70,6 @@ copy_item() {
 # --- Step 1: Create directories ---
 mkdir -p "${CLAUDE_HOME}/skills"
 mkdir -p "${CLAUDE_HOME}/agents"
-mkdir -p "${CLAUDE_HOME}/commands"
 
 # --- Step 2: Copy shared skills ---
 echo "Skills:"
@@ -94,16 +93,7 @@ for agent_file in "${SCRIPT_DIR}/agents"/*.md; do
     copy_item "${agent_file}" "${target}" "${agent_name}"
 done
 
-# --- Step 4: Copy shared commands ---
-echo ""
-echo "Commands:"
-for cmd_file in "${SCRIPT_DIR}/commands"/*.md; do
-    cmd_name="$(basename "${cmd_file}")"
-    target="${CLAUDE_HOME}/commands/${cmd_name}"
-    copy_item "${cmd_file}" "${target}" "${cmd_name}"
-done
-
-# --- Step 5: Install stack-specific skills ---
+# --- Step 4: Install stack-specific skills ---
 echo ""
 echo "Available stack packs:"
 for stack_dir in "${SCRIPT_DIR}/stacks"/*/; do
@@ -152,6 +142,5 @@ echo ""
 echo "Installed to ${CLAUDE_HOME}:"
 echo "  Skills:   $(ls -1 "${CLAUDE_HOME}/skills/" 2>/dev/null | wc -l | xargs) items"
 echo "  Agents:   $(ls -1 "${CLAUDE_HOME}/agents/" 2>/dev/null | wc -l | xargs) items"
-echo "  Commands: $(ls -1 "${CLAUDE_HOME}/commands/" 2>/dev/null | wc -l | xargs) items"
 echo ""
 echo "To update: cd $(dirname "${SCRIPT_DIR}") && git pull && ./install.sh --tool claude"
