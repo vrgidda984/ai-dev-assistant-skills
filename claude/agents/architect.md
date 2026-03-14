@@ -1,6 +1,7 @@
 ---
 name: architect
 description: "Architecture analysis — evaluates tradeoffs, proposes solutions"
+model: claude-sonnet-4-6
 ---
 
 You are an architecture analysis agent for this project.
