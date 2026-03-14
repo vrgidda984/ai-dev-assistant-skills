@@ -1,6 +1,27 @@
 # AI Dev Assistant Skills
 
-Shared skills, prompts, agents, and conventions for **Claude Code** and **GitHub Copilot** — maintained in one repo so changes stay in sync.
+A curated collection of reusable workflows, agents, stack conventions, and documentation templates for AI-assisted development — supporting both **Claude Code** and **GitHub Copilot** from a single source of truth.
+
+### What's in the box
+
+- **Workflows** — session handoff, feature planning, code review, doc updates, commit/PR automation
+- **Agents** — architect, code reviewer, docs writer
+- **Stack packs** — framework-specific conventions (NestJS, Python/FastAPI) for coding standards, testing, and secrets management
+- **Docs scaffold** — ready-made documentation structure for new projects
+
+### How the installer works
+
+`install.sh` is a root dispatcher. It asks which AI tool you use, then delegates to the tool-specific installer. Use `--tool claude` or `--tool copilot` to skip the prompt. All other flags are passed through to the sub-installer.
+
+### Which tool should I choose?
+
+| | Claude Code | GitHub Copilot |
+|---|---|---|
+| **Use if** | You use the Claude Code CLI | You use Copilot Chat in VS Code / JetBrains |
+| **Installs to** | `~/.claude/` (global — available across all projects) | `.github/` in your project (per-project) |
+| **Format** | Skills, commands, agents, stacks | Prompts, agents, instructions |
+
+You can install both if you use both tools — they don't conflict.
 
 ## Quick Start
 
