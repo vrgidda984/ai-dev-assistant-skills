@@ -175,6 +175,30 @@ describe('UserController (E2E)', () => {
 });
 ```
 
+## Testing Guards, Interceptors, Pipes, and Filters
+
+Use `overrideGuard()`, `overrideInterceptor()`, `overridePipe()`, `overrideFilter()`:
+
+```typescript
+const module = await Test.createTestingModule({ imports: [AppModule] })
+  .overrideGuard(JwtAuthGuard).useValue({ canActivate: () => true })
+  .compile();
+```
+
+For globally registered enhancers (`APP_*` tokens), use `useExisting` in the provider to make them overridable in tests.
+
+## Auto-Mocking
+
+Use `.useMocker()` for services with many dependencies:
+
+```typescript
+const module = await Test.createTestingModule({ providers: [UserService] })
+  .useMocker((token) => {
+    if (token === PrismaService) return { user: { findUnique: jest.fn() } };
+  })
+  .compile();
+```
+
 ## Best Practices
 
 1. **Isolation**: Each test should be independent
@@ -187,3 +211,5 @@ describe('UserController (E2E)', () => {
 8. **Realistic Data**: Use realistic test data, avoid magic numbers
 9. **Performance**: Keep unit tests fast (<100ms each)
 10. **Transactions**: Wrap test database operations in transactions when possible
+11. **Always call `.compile()`** before retrieving instances
+12. **Use `resolve()` not `get()`** for request-scoped or transient providers
