@@ -115,12 +115,50 @@ camelCase. Do not duplicate class context — in `UsersService`, use `findOne()`
 - No verbs in paths — the HTTP method conveys the action
 - Nested resources for relationships: `/users/:userId/orders`
 
+## Request Pipeline
+
+Execution order: Middleware → Guards → Interceptors (pre) → Pipes → Handler → Interceptors (post) → Exception Filters
+
+- Use **middleware** for authentication (token validation)
+- Use **guards** for authorization (permission checks)
+- Use **pipes** for input validation/transformation
+- Use **interceptors** for cross-cutting concerns (logging, caching, response mapping)
+
+## Provider Scopes
+
+- `DEFAULT` (Singleton) — use for most services
+- `REQUEST` — new instance per request; adds ~5% latency; bubbles up dependency chain
+- `TRANSIENT` — new instance per injection; does NOT bubble scope
+- Never use request-scoped providers with WebSocket Gateways or Cron controllers
+
+## Global Registration
+
+Prefer module-based registration via `APP_GUARD`, `APP_FILTER`, `APP_PIPE`, `APP_INTERCEPTOR` tokens over `app.useGlobal*()` — enables DI and testability.
+
+## Configuration
+
+- Use `ConfigModule.forRoot({ isGlobal: true, cache: true })` — avoid importing in every module
+- Always validate env vars at startup with Joi or class-validator
+- Use typed ConfigService: `this.configService.get<string>('KEY', { infer: true })`
+- Runtime env vars take precedence over `.env` values
+
+## Dynamic Modules
+
+Use `forRoot()` for global config (once in AppModule), `forFeature()` for per-module registration.
+
+## Custom Decorators
+
+Use `Reflector.createDecorator<T>()` for type-safe metadata decorators (e.g., `@Roles()`, `@Public()`).
+
 ## Code Standards
 
 ### Controllers
 - @ApiTags, @ApiOperation, @ApiResponse decorators
 - Validation pipes on all inputs
 - Thin controllers — delegate to services
+- Declare parameterized routes AFTER static routes
+- Use `@Param()`, `@Body()`, `@Query()` — avoid raw `@Req()`
+- Never use `@Res()` directly — breaks interceptors and serialization
 
 ### Services
 - Logger: `private readonly logger = new Logger(ServiceName.name)`
@@ -129,10 +167,29 @@ camelCase. Do not duplicate class context — in `UsersService`, use `findOne()`
 - Follow structured logging standards (see Logging section below)
 
 ### DTOs
+- Use **classes**, not interfaces — classes enable runtime validation
 - class-validator on all fields
 - @Transform for sanitization
 - PartialType/OmitType for updates
 - @Expose() in response DTOs
+
+### Modules
+- Use `exports` as the module's public API
+- Use `@Global()` sparingly — only in root/core module
+- Never register the same provider in multiple modules
+
+### Guards
+- Implement `CanActivate`; use for authorization, not authentication
+- Throw `UnauthorizedException`/`ForbiddenException` with messages, don't just return `false`
+
+### Pipes
+- Use built-in pipes first: `ValidationPipe`, `ParseIntPipe`, `ParseUUIDPipe`, `DefaultValuePipe`
+- Register global `ValidationPipe` via `APP_PIPE` with `whitelist: true`, `transform: true`
+
+### Exception Handling
+- Use built-in exceptions: `BadRequestException`, `NotFoundException`, `ForbiddenException`, etc.
+- Custom exceptions must extend `HttpException`
+- Use `cause` parameter for error chaining
 
 ### Entities
 - UUID primary keys
@@ -144,6 +201,7 @@ camelCase. Do not duplicate class context — in `UsersService`, use `findOne()`
 - **Client**: Inject PrismaService via DI
 - **Transactions**: Use `prisma.$transaction()` for multi-model operations
 - **Migrations**: `prisma migrate dev` for development, `prisma migrate deploy` for production
+- **NEVER** use `synchronize: true` in production
 
 ### Logging
 
