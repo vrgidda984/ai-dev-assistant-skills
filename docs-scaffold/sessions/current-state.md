@@ -1,10 +1,14 @@
 # Current State
 
+<!-- GENERATION GUIDANCE: Provide a comprehensive snapshot of the system's current
+state. Match the depth of architecture/overview.md. -->
+
 _Last updated: [YYYY-MM-DD]_
 
 ## System Overview
 
-[What the system does right now — 2-3 sentences]
+[Comprehensive description of what the system does right now — its capabilities,
+maturity level, and current state. Be thorough.]
 
 ## Recent Changes
 
