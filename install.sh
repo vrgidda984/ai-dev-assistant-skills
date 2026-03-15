@@ -20,7 +20,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --tool      AI assistant to install for: 'claude' or 'copilot' (interactive if omitted)"
             echo ""
             echo "Claude options:  [--stacks nestjs,python] [--force] [--scaffold]"
-            echo "Copilot options: --target <dir> [--stacks nestjs,python] [--force] [--scaffold]"
+            echo "Copilot options: [--target <dir>] [--stacks nestjs,python] [--force] [--scaffold]"
             exit 0
             ;;
         *)
