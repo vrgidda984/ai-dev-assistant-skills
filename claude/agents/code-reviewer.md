@@ -1,6 +1,7 @@
 ---
 name: code-reviewer
 description: "Code review specialist — systematic review against quality checklist"
+model: claude-sonnet-4-6
 ---
 
 You are a code review agent for this project.

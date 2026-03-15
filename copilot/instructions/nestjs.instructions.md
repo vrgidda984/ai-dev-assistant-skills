@@ -138,7 +138,7 @@ Prefer module-based registration via `APP_GUARD`, `APP_FILTER`, `APP_PIPE`, `APP
 ## Configuration
 
 - Use `ConfigModule.forRoot({ isGlobal: true, cache: true })` — avoid importing in every module
-- Always validate env vars at startup with Joi or class-validator
+- Always validate env vars at startup with class-validator (`validate` function + `plainToInstance` + `validateSync`)
 - Use typed ConfigService: `this.configService.get<string>('KEY', { infer: true })`
 - Runtime env vars take precedence over `.env` values
 
@@ -164,14 +164,14 @@ Use `Reflector.createDecorator<T>()` for type-safe metadata decorators (e.g., `@
 - Logger: `private readonly logger = new Logger(ServiceName.name)`
 - Throw NestJS exceptions (NotFoundException, ConflictException, etc.)
 - Transactions for multi-entity operations
-- Follow structured logging standards (see Logging section below)
+- Follow structured logging standards (see [Logging](#logging) section)
 
 ### DTOs
 - Use **classes**, not interfaces — classes enable runtime validation
 - class-validator on all fields
 - @Transform for sanitization
 - PartialType/OmitType for updates
-- @Expose() in response DTOs
+- @Expose() in response DTOs (requires `class-transformer` + `ClassSerializerInterceptor`)
 
 ### Modules
 - Use `exports` as the module's public API
@@ -194,14 +194,14 @@ Use `Reflector.createDecorator<T>()` for type-safe metadata decorators (e.g., `@
 ### Entities
 - UUID primary keys
 - @Index on query columns
-- Soft deletes with @DeleteDateColumn
+- Soft deletes with `deletedAt DateTime?` field and query filters
 
 ### Database (Prisma ORM)
 - **Schema**: Define in `prisma/schema.prisma`
 - **Client**: Inject PrismaService via DI
 - **Transactions**: Use `prisma.$transaction()` for multi-model operations
 - **Migrations**: `prisma migrate dev` for development, `prisma migrate deploy` for production
-- **NEVER** use `synchronize: true` in production
+- **NEVER** auto-apply schema changes in production — always use `prisma migrate deploy`
 
 ### Logging
 

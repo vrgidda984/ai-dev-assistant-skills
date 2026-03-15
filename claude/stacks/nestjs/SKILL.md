@@ -216,19 +216,54 @@ app.useGlobalGuards(new JwtAuthGuard());
 ### ConfigModule Setup
 
 ```typescript
+// config/env.validation.ts
+import { plainToInstance } from 'class-transformer';
+import { IsEnum, IsNumber, IsString, validateSync } from 'class-validator';
+
+enum Environment {
+  DEVELOPMENT = 'development',
+  PRODUCTION = 'production',
+  TEST = 'test',
+}
+
+export class EnvironmentVariables {
+  @IsEnum(Environment)
+  NODE_ENV: Environment = Environment.DEVELOPMENT;
+
+  @IsNumber()
+  PORT: number = 3000;
+
+  @IsString()
+  DATABASE_URL: string;
+
+  @IsString()
+  JWT_SECRET: string;
+}
+
+export function validate(config: Record<string, unknown>) {
+  const validatedConfig = plainToInstance(EnvironmentVariables, config, {
+    enableImplicitConversion: true,
+  });
+  const errors = validateSync(validatedConfig, { skipMissingProperties: false });
+
+  if (errors.length > 0) {
+    throw new Error(errors.toString());
+  }
+  return validatedConfig;
+}
+```
+
+```typescript
 // app.module.ts
+import { validate } from './config/env.validation';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
       expandVariables: true,
-      validationSchema: Joi.object({
-        NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
-        PORT: Joi.number().default(3000),
-        DATABASE_URL: Joi.string().required(),
-        JWT_SECRET: Joi.string().required(),
-      }),
+      validate,
     }),
   ],
 })
@@ -237,7 +272,7 @@ export class AppModule {}
 
 **Key rules:**
 - Set `isGlobal: true` to avoid importing ConfigModule in every feature module
-- Always validate env vars at startup — fail fast on missing/invalid config
+- Always validate env vars at startup with class-validator — fail fast on missing/invalid config
 - Use `cache: true` for performance
 - Use typed ConfigService: `this.configService.get<string>('DATABASE_URL', { infer: true })`
 - Runtime environment variables take precedence over `.env` values
@@ -334,12 +369,12 @@ export class RolesGuard implements CanActivate {
 - class-validator decorators on all fields
 - @Transform for sanitization
 - PartialType/OmitType for updates
-- @Expose() in response DTOs
+- @Expose() in response DTOs (requires `class-transformer` and `ClassSerializerInterceptor` registered globally)
 
 ### Entities
 - UUID primary keys
 - @Index on query columns
-- Soft deletes with @DeleteDateColumn
+- Soft deletes with `deletedAt DateTime?` field and Prisma middleware or `where: { deletedAt: null }` filters
 
 ### Modules
 - Group related controllers, services, and providers into feature modules
@@ -379,7 +414,7 @@ export class RolesGuard implements CanActivate {
 - **Relations**: Define relations in schema, use `include` for eager loading
 - **Migrations**: Run `prisma migrate dev` for development, `prisma migrate deploy` for production
 - **Type Safety**: Prisma generates TypeScript types automatically
-- **NEVER** use `synchronize: true` in production — risk of data loss
+- **NEVER** auto-apply schema changes in production — always use `prisma migrate deploy`
 
 ### Logging
 
