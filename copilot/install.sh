@@ -29,10 +29,10 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         -h|--help)
-            echo "Usage: copilot/install.sh --target <project-dir> [--stacks nestjs,python] [--force] [--scaffold]"
+            echo "Usage: copilot/install.sh [--target <project-dir>] [--stacks nestjs,python] [--force] [--scaffold]"
             echo ""
             echo "Options:"
-            echo "  --target    Project directory to install into (required)"
+            echo "  --target    Project directory to install into (interactive if omitted)"
             echo "  --stacks    Comma-separated stack packs to install (interactive if omitted)"
             echo "  --force     Overwrite existing files without prompting"
             echo "  --scaffold  Also copy docs-scaffold/ to docs/ in the target project"
@@ -46,9 +46,17 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "${TARGET_DIR}" ]]; then
-    echo "Error: --target is required"
-    echo "Usage: copilot/install.sh --target <project-dir> [--stacks nestjs,python] [--force] [--scaffold]"
-    exit 1
+    while true; do
+        read -p "Enter the project directory to install into: " TARGET_DIR
+        if [[ -z "${TARGET_DIR}" ]]; then
+            echo "  Path cannot be empty. Please try again."
+        elif [[ ! -d "${TARGET_DIR}" ]]; then
+            echo "  Directory '${TARGET_DIR}' does not exist. Please try again."
+            TARGET_DIR=""
+        else
+            break
+        fi
+    done
 fi
 
 TARGET_DIR="$(cd "${TARGET_DIR}" && pwd)"
