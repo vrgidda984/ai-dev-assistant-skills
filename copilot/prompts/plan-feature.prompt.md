@@ -49,7 +49,7 @@ Before starting any new feature, integration, or significant change.
    - [ ] [Task 1 — be specific and actionable]
    - [ ] [Task 2]
    - [ ] [Task 3]
-   - [ ] Update documentation
+   - [ ] Update documentation (run `/update-docs` after implementation is complete)
    - [ ] Update tests
 
    ## API Changes
@@ -76,10 +76,18 @@ Before starting any new feature, integration, or significant change.
 
 5. Review the plan with the user before proceeding to implementation.
 
-6. After the user approves, begin implementation — updating docs as you go.
+6. After the user approves, begin implementation. When implementation is
+   complete, run the **update-docs** prompt (`/update-docs`) to update all
+   relevant documentation based on what changed (architecture, API contracts,
+   data model, env vars, setup). This ensures docs stay in sync without
+   manual tracking.
+
+7. Run the **session-handoff** prompt (`/session-handoff`) to capture the
+   latest project state in `docs/sessions/current-state.md`.
+
+8. Move the plan from `docs/plans/active/` to `docs/plans/completed/` and
+   update its status to `Completed`.
 
 ## Notes
-
-- Plans in `active/` should be moved to `completed/` when done.
 - If a plan becomes obsolete, note why and move to `completed/`.
 - Reference the plan in commit messages: "Implements [feature-name] plan"

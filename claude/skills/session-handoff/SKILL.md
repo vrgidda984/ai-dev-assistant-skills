@@ -1,20 +1,19 @@
 ---
 name: session-handoff
 description: >
-  Generate a complete session handoff by updating current-state.md and
-  appending to changelog.md. This skill should be used when the user says
-  "wrap up", "hand off", "end session", "save progress", "I'm done for today",
-  "session end", or any indication they are finishing a coding session.
-  Also use when a teammate needs to pick up the work.
+  Save current working context so you can pick up seamlessly in your next
+  session. This skill should be used when the user says "wrap up", "hand off",
+  "end session", "save progress", "I'm done for today", "session end", or any
+  indication they are finishing a coding session.
 ---
 
 # Session Handoff
 
-Generate a complete session handoff so the next developer can pick up seamlessly.
+Save your current working context so you can pick up seamlessly in your next session.
 
 ## When to Use
 
-End of any coding session, or when switching context to another developer.
+End of any coding session, when context gets too long, or when starting a fresh thread.
 
 ## Steps
 
@@ -44,7 +43,7 @@ End of any coding session, or when switching context to another developer.
 
    ## Next Steps
 
-   [What the next developer should pick up, in priority order]
+   [What to pick up next, in priority order]
 
    ## Key Context
 
@@ -69,6 +68,10 @@ End of any coding session, or when switching context to another developer.
    Update if needed.
 
 6. Confirm the handoff is complete and summarize what was captured.
+
+## Note
+
+`docs/sessions/` is local working state — it should be added to your project's `.gitignore`.
 
 ## Slash Command Fallback
 
