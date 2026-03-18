@@ -1,15 +1,15 @@
 ---
 mode: "agent"
-description: "End-of-session handoff — save state for the next developer"
+description: "End-of-session handoff — save state for your next session"
 ---
 
 # Session Handoff
 
-Generate a complete session handoff so the next developer (or your next session) can pick up seamlessly.
+Save your current working context so you can pick up seamlessly in your next session.
 
 ## When to Use
 
-End of any coding session, or when switching context to another developer.
+End of any coding session, when context gets too long, or when starting a fresh thread.
 
 ## Steps
 
@@ -39,7 +39,7 @@ End of any coding session, or when switching context to another developer.
 
    ## Next Steps
 
-   [What the next developer should pick up, in priority order]
+   [What to pick up next, in priority order]
 
    ## Key Context
 
@@ -64,3 +64,7 @@ End of any coding session, or when switching context to another developer.
    Update if needed.
 
 6. Confirm the handoff is complete and summarize what was captured.
+
+## Note
+
+`docs/sessions/` is local working state — it should be added to your project's `.gitignore`.
