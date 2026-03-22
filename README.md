@@ -63,7 +63,7 @@ Installs per-project into `.github/` (prompts, agents, instructions).
 
 **Session handoff** — Saves your current working context so you can pick up where you left off in a new session. Useful when the tool closes, context gets too long, or you want to start a fresh thread. Overwrites `docs/sessions/current-state.md` with system overview, current status, and next steps. Appends a dated entry to `docs/sessions/changelog.md`.
 
-> **Note:** `docs/sessions/` is local working state — add it to your project's `.gitignore`.
+> **Note:** `docs/sessions/` is local working state and should not be committed. The install scripts automatically add it to your project's `.gitignore` when using `--scaffold`. If you set up `docs/sessions/` manually, add `docs/sessions/` to your `.gitignore` yourself.
 
 **Resume session** — _(Copilot only)_ Reads `current-state.md` and the changelog to restore context when starting a new session. Claude Code handles this natively via persistent memory.
 

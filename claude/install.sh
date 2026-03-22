@@ -131,6 +131,7 @@ if [[ "${SCAFFOLD}" == true ]]; then
     if [[ -d "${SCAFFOLD_DIR}" ]]; then
         echo "  docs-scaffold/ available at: ${SCAFFOLD_DIR}"
         echo "  Copy it manually to your project: cp -r '${SCAFFOLD_DIR}' /path/to/project/docs"
+        echo "  Remember to add 'docs/sessions/' to your project's .gitignore (local session state)"
     else
         echo "  WARNING: docs-scaffold/ not found"
     fi
