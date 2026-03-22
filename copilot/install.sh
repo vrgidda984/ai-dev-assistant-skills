@@ -202,6 +202,19 @@ if [[ "${SCAFFOLD}" == true ]]; then
                 echo "  Copied: docs/${name}"
             fi
         done
+        # Add docs/sessions/ to .gitignore (local session state)
+        GITIGNORE="${TARGET_DIR}/.gitignore"
+        if [[ -f "${GITIGNORE}" ]]; then
+            if ! grep -qxF 'docs/sessions/' "${GITIGNORE}"; then
+                echo 'docs/sessions/' >> "${GITIGNORE}"
+                echo "  Added docs/sessions/ to .gitignore"
+            else
+                echo "  .gitignore already contains docs/sessions/"
+            fi
+        else
+            echo 'docs/sessions/' > "${GITIGNORE}"
+            echo "  Created .gitignore with docs/sessions/"
+        fi
     else
         echo "  WARNING: docs-scaffold/ not found"
     fi
